@@ -1,17 +1,19 @@
+function requireHTTPS(req, res, next) {
+  // The 'x-forwarded-proto' check is for Heroku
+  if (!req.secure && req.get('x-forwarded-proto') !== 'https') {
+      return res.redirect('https://' + req.get('host') + req.url);
+  }
+  next();
+}
+
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 7626;
-const www = process.env.WWW || './dist/heroes-angular';
 
-const captains = console;
+app.use(requireHTTPS);
+app.use(express.static('./dist/heros-angular'));
 
-const start = () => {
-  app.use(express.static(www));
-  captains.log(`serving ${www}`);
-  app.get('*', (req, res) => {
-    res.sendFile(`index.html`, { root: www });
-  });
-  app.listen(port, () => captains.log(`listening on http://localhost:${port}`));
-};
+app.get('/*', (req, res) =>
+  res.sendFile('index.html', {root: 'dist/heros-angular/'}),
+);
 
-start();
+app.listen(process.env.PORT || 8080);
